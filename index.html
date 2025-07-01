@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jonny Paes - Github</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .flex-item {
+      border: 1px solid black;
+      padding: 10px;
+      margin: 5px 0;
+    }
+    .sidebar, .content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+    .sidebar {
+      flex: 0.382;
+      background: #333;
+      color: white;
+    }
+    .content {
+      flex: 0.618;
+      background: #f4f4f4;
+    }
+    /* In portrait mode (height > width), invert layout: sidebar on top */
+    @media (orientation: portrait) {
+      .container {
+        flex-direction: column;
+      }
+      .sidebar, .content {
+        width: 100%;
+        height: auto;
+      }
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+// Basic element creation function
+function createElement(type, id, className, textContent = '') {
+    const el = document.createElement(type);
+    if (id) el.id = id;
+    if (className) el.classList.add(className);
+    if (textContent) el.textContent = textContent;
+    return el;
+}
+
+// Apply the golden ratio for font sizing (if needed)
+function applyGoldenRatio(baseSize, depth) {
+    const goldenRatio = 1.618;
+    return baseSize / Math.pow(goldenRatio, depth);
+}
+
+// Build the sidebar using only selected fields from user data
+function buildSidebar(parent, userData) {
+    // Create a container for each field
+    const fields = [
+      { label: 'Name', key: 'name' },
+      { label: 'GitHub URL', key: 'html_url' },
+      { label: 'Company', key: 'company' },
+      { label: 'Blog', key: 'blog' },
+      { label: 'Location', key: 'location' }
+    ];
+    
+    fields.forEach(field => {
+      const item = createElement('div', '', 'flex-item');
+      item.style.fontSize = applyGoldenRatio(20, 1) + 'px';
+      
+      // If the field is a URL, create an anchor element
+      if (field.key === 'html_url' || field.key === 'blog') {
+        const anchor = document.createElement('a');
+        anchor.href = userData[field.key];
+        anchor.target = '_blank';
+        anchor.textContent = userData[field.key] || '';
+        item.textContent = field.label + ': ';
+        item.appendChild(anchor);
+      } else {
+        item.textContent = field.label + ': ' + (userData[field.key] || '');
+      }
+      
+      parent.appendChild(item);
+    });
+}
+
+// Build the content area using only selected fields from repos data
+function buildContent(parent, reposData) {
+  reposData.forEach(repo => {
+    const repoContainer = createElement('div', '', 'flex-item');
+    repoContainer.style.fontSize = applyGoldenRatio(20, 1) + 'px';
+    
+    // Repo Name (with link to html_url)
+    const nameEl = document.createElement('div');
+    nameEl.innerHTML = `<strong>Name:</strong> <a href="${repo.html_url}" target="_blank">${repo.name}</a>`;
+    repoContainer.appendChild(nameEl);
+    
+    // Homepage
+    const homepageEl = createElement('div', '', '');
+    homepageEl.innerHTML = `<strong>Homepage:</strong> <a href="${repo.homepage}" target="_blank">${repo.homepage}</a>`;
+    repoContainer.appendChild(homepageEl);
+    
+    // Description
+    const descEl = createElement('div', '', '');
+    descEl.innerHTML = `<strong>Description:</strong> ${repo.description || ''}`;
+    repoContainer.appendChild(descEl);
+    
+    // Language
+    const langEl = createElement('div', '', '');
+    langEl.innerHTML = `<strong>Language:</strong> ${repo.language || ''}`;
+    repoContainer.appendChild(langEl);
+    
+    parent.appendChild(repoContainer);
+  });
+}
+
+// Function to fetch JSON data from a URL
+async function fetchData(url) {
+    const response = await fetch(url);
+    return response.json();
+}
+
+async function init() {
+    const userUrl = 'https://api.github.com/users/jonnypaes';
+    const reposUrl = 'https://api.github.com/users/jonnypaes/repos';
+    
+    try {
+        const [userData, reposData] = await Promise.all([
+            fetchData(userUrl),
+            fetchData(reposUrl)
+        ]);
+        
+        const container = createElement('div', '', 'container');
+        const sidebar = createElement('div', 'sidebar', 'sidebar');
+        const content = createElement('div', 'content', 'content');
+        
+        // Build the sidebar using the specified user fields
+        buildSidebar(sidebar, userData);
+        // Build the content using the selected fields for each repository
+        buildContent(content, reposData);
+        
+        container.appendChild(sidebar);
+        container.appendChild(content);
+        document.body.appendChild(container);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+
+init();
+</script>
+
+</body>
+</html>
