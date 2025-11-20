@@ -5,69 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jonny Paes - Github</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-    .flex-item {
-      border: 1px solid black;
-      padding: 10px;
-      margin: 5px 0;
-    }
-    .sidebar, .content {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      overflow-y: auto;
-    }
-    .container {
-      display: flex;
-      width: 100vw;
-      height: 100vh;
-    }
+  :root {
+    --wm-sb-bg-color: #333;
+    --dm-sb-bg-color: black;
+    --wm-sb-item-color: black;
+    --dm-sb-item-color: white;
+    --wm-ct-bg-color: #f4f4f4;
+    --dm-ct-bg-color: #303030;
+    --wm-ct-text-color: black;
+    --dm-ct-text-color: white;
+  }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  .flex-item {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    margin: 5px 0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  .sidebar .flex-item {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #eee;
+  }
+  .sidebar,
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  .sidebar a {
+    color: #81c784;
+  }
+  .container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+  }
+  .sidebar {
+    flex: 0.382;
+    background: #333;
+    color: white;
+  }
+  .content {
+    flex: 0.618;
+    background: #f4f4f4;
+  }
+  @media (prefers-color-scheme: dark) {
     .sidebar {
-      flex: 0.382;
-      background: #333;
-      color: white;
+      color: var(--dm-sb-item-color);
+      background-color: var(--dm-sb-bg-color);
     }
     .content {
-      flex: 0.618;
-      background: #f4f4f4;
+      color: var(--dm-ct-item-color);
+      background-color: var(--dm-ct-bg-color);
     }
-    /* In portrait mode (height > width), invert layout: sidebar on top */
-    @media (orientation: portrait) {
-      .container {
-        flex-direction: column;
-      }
-      .sidebar, .content {
-        width: 100%;
-        height: auto;
-      }
+  }
+    
+  /* In portrait mode (height > width), invert layout: sidebar on top */
+  @media (orientation: portrait) {
+    .container {
+      flex-direction: column;
     }
-    a {
-      color: inherit;
-      text-decoration: none;
+    .sidebar,
+    .content {
+      width: 100%;
+      height: auto;
     }
-    a:hover {
-      text-decoration: underline;
-    }
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
   </style>
 </head>
+
 <body>
 
 <script>
-// Helper function to ensure URL is absolute (starts with http or https)
 function makeAbsoluteUrl(url) {
     if (!url) return '';
-    // If protocol is missing, assume https://
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-        return url;
-    }
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
     return 'https://' + url;
 }
 
-// Basic element creation function
 function createElement(type, id, className, textContent = '') {
     const el = document.createElement(type);
     if (id) el.id = id;
@@ -76,126 +106,78 @@ function createElement(type, id, className, textContent = '') {
     return el;
 }
 
-// Apply the golden ratio for font sizing (if needed)
 function applyGoldenRatio(baseSize, depth) {
-    const goldenRatio = 1.618;
-    return baseSize / Math.pow(goldenRatio, depth);
+    return baseSize / Math.pow(1.618, depth);
 }
 
-// Build the sidebar using only selected fields from user data
-
-// Build the sidebar using only selected fields from user data
 function buildSidebar(parent, userData) {
-    // List of user fields to display
-    const fields = [
-      { label: 'Name', key: 'name' },
-      { label: 'GitHub URL', key: 'html_url' },
-      { label: 'Company', key: 'company' },
-      { label: 'Blog', key: 'blog' },
-      { label: 'Location', key: 'location' }
-    ];
-    
-    fields.forEach(field => {
-      const item = createElement('div', '', 'flex-item');
-      item.style.fontSize = applyGoldenRatio(20, 1) + 'px';
-      
-      const rawValue = userData[field.key] || 'N/A';
-      
-      // If the field is a URL, create an anchor element
-      if (field.key === 'html_url' || field.key === 'blog') {
-        if (rawValue !== 'N/A') {
-            // FIX: Ensure blog URL is absolute
+    const fields = [
+      { label: 'Name', key: 'name' },
+      { label: 'GitHub URL', key: 'html_url' },
+      { label: 'Blog', key: 'blog' },
+      { label: 'Location', key: 'location' }
+    ];
+    
+    fields.forEach(field => {
+      const item = createElement('div', '', 'flex-item');
+      item.style.fontSize = applyGoldenRatio(18, 1) + 'px';
+      const rawValue = userData[field.key] || 'N/A';
+      
+      if ((field.key === 'html_url' || field.key === 'blog') && rawValue !== 'N/A') {
             const hrefUrl = field.key === 'blog' ? makeAbsoluteUrl(rawValue) : rawValue;
-
-            const anchor = document.createElement('a');
-            anchor.href = hrefUrl; 
-            anchor.target = '_blank';
-            anchor.textContent = rawValue;
-            item.textContent = field.label + ': ';
-            item.appendChild(anchor);
-        } else {
-            item.textContent = field.label + ': ' + rawValue;
-        }
-      } else {
-        item.textContent = field.label + ': ' + rawValue;
-      }
-      
-      parent.appendChild(item);
-    });
+            item.innerHTML = `${field.label}: <br><a href="${hrefUrl}" target="_blank">${rawValue}</a>`;
+      } else {
+        item.textContent = field.label + ': ' + rawValue;
+      }
+      parent.appendChild(item);
+    });
 }
 
-// Build the content area using only selected fields from repos data
 function buildContent(parent, reposData) {
-    // Define the name of the repository that should be ignored
-    const ignoredRepoName = window.location.hostname;
-    
-    reposData.forEach(repo => {
-        if (repo.name === ignoredRepoName) {
-            console.log(`Skipping content display for repository: ${ignoredRepoName}`);
-            return; // Skip to the next iteration of the forEach loop
-        }
-        
-        const repoContainer = createElement('div', '', 'flex-item');
-        repoContainer.style.fontSize = applyGoldenRatio(20, 1) + 'px';
-        
-        // Define the root homepage URL
-        const rootHomepageUrl = (window.location.protocol + '//' + window.location.hostname + window.location.pathname);
-        
-        // 1. Repo Name (with link to html_url)
-        const nameEl = document.createElement('div');
-        nameEl.innerHTML = `<strong>Name:</strong> <a href="${repo.html_url}" target="_blank">${repo.name}</a>`;
-        repoContainer.appendChild(nameEl);
-        
-        // 2. Homepage (Skipped only if null/empty, as the main repo is already excluded)
-        const homepageEl = createElement('div', '', '');
-        homepageEl.innerHTML = `<strong>Homepage:</strong> <a href="${repo.homepage}" target="_blank">${repo.homepage}</a>`;
-        repoContainer.appendChild(homepageEl);
-        
-        // 3. Description
-        const descEl = createElement('div', '', '');
-        descEl.innerHTML = `<strong>Description:</strong> ${repo.description || 'No description provided.'}`;
-        repoContainer.appendChild(descEl);
-        
-        // 4. Language
-        const langEl = createElement('div', '', '');
-        langEl.innerHTML = `<strong>Language:</strong> ${repo.language || 'N/A'}`;
-        repoContainer.appendChild(langEl);
-        
-        parent.appendChild(repoContainer);
-    });
-}
-
-// Function to fetch JSON data from a URL
-async function fetchData(url) {
-    const response = await fetch(url);
-    return response.json();
+    const ignoredRepoName = window.location.hostname;
+    reposData.forEach(repo => {
+        if (repo.name === ignoredRepoName) return;
+        
+        const repoContainer = createElement('div', '', 'flex-item');
+        repoContainer.style.fontSize = applyGoldenRatio(20, 1) + 'px';
+        
+        repoContainer.innerHTML = `
+            <div style="margin-bottom:5px;"><strong>${repo.name}</strong></div>
+            <div style="font-size: 0.9em; margin-bottom:5px;"><a href="${repo.html_url}" target="_blank">View Code</a> | <a href="${repo.homepage || '#'}" target="_blank">Homepage</a></div>
+            <div style="font-style: italic; margin-bottom:5px;">${repo.description || 'No description.'}</div>
+            <div style="font-size: 0.8em; opacity: 0.8;">${repo.language || 'N/A'}</div>
+        `;
+        parent.appendChild(repoContainer);
+    });
 }
 
 async function init() {
     const userUrl = 'https://api.github.com/users/jonnypaes';
     const reposUrl = 'https://api.github.com/users/jonnypaes/repos';
-    
     try {
         const [userData, reposData] = await Promise.all([
             fetchData(userUrl),
             fetchData(reposUrl)
         ]);
-        
         const container = createElement('div', '', 'container');
         const sidebar = createElement('div', 'sidebar', 'sidebar');
         const content = createElement('div', 'content', 'content');
         
-        // Build the sidebar using the specified user fields
         buildSidebar(sidebar, userData);
-        // Build the content using the selected fields for each repository
         buildContent(content, reposData);
         
         container.appendChild(sidebar);
         container.appendChild(content);
         document.body.appendChild(container);
+        
     } catch (error) {
         console.error("Error fetching data:", error);
     }
+}
+
+async function fetchData(url) {
+    const response = await fetch(url);
+    return response.json();
 }
 
 init();
@@ -203,5 +185,3 @@ init();
 
 </body>
 </html>
-
-
