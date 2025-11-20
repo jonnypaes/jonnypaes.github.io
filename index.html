@@ -57,6 +57,16 @@
 <body>
 
 <script>
+// Helper function to ensure URL is absolute (starts with http or https)
+function makeAbsoluteUrl(url) {
+    if (!url) return '';
+    // If protocol is missing, assume https://
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+    return 'https://' + url;
+}
+
 // Basic element creation function
 function createElement(type, id, className, textContent = '') {
     const el = document.createElement(type);
@@ -73,64 +83,87 @@ function applyGoldenRatio(baseSize, depth) {
 }
 
 // Build the sidebar using only selected fields from user data
+
+// Build the sidebar using only selected fields from user data
 function buildSidebar(parent, userData) {
-    // Create a container for each field
-    const fields = [
-      { label: 'Name', key: 'name' },
-      { label: 'GitHub URL', key: 'html_url' },
-      { label: 'Company', key: 'company' },
-      { label: 'Blog', key: 'blog' },
-      { label: 'Location', key: 'location' }
-    ];
-    
-    fields.forEach(field => {
-      const item = createElement('div', '', 'flex-item');
-      item.style.fontSize = applyGoldenRatio(20, 1) + 'px';
-      
-      // If the field is a URL, create an anchor element
-      if (field.key === 'html_url' || field.key === 'blog') {
-        const anchor = document.createElement('a');
-        anchor.href = userData[field.key];
-        anchor.target = '_blank';
-        anchor.textContent = userData[field.key] || '';
-        item.textContent = field.label + ': ';
-        item.appendChild(anchor);
-      } else {
-        item.textContent = field.label + ': ' + (userData[field.key] || '');
-      }
-      
-      parent.appendChild(item);
-    });
+    // List of user fields to display
+    const fields = [
+      { label: 'Name', key: 'name' },
+      { label: 'Bio', key: 'bio' }, 
+      { label: 'GitHub URL', key: 'html_url' },
+      { label: 'Company', key: 'company' },
+      { label: 'Blog', key: 'blog' },
+      { label: 'Location', key: 'location' }
+    ];
+    
+    fields.forEach(field => {
+      const item = createElement('div', '', 'flex-item');
+      item.style.fontSize = applyGoldenRatio(20, 1) + 'px';
+      
+      const rawValue = userData[field.key] || 'N/A';
+      
+      // If the field is a URL, create an anchor element
+      if (field.key === 'html_url' || field.key === 'blog') {
+        if (rawValue !== 'N/A') {
+            // FIX: Ensure blog URL is absolute
+            const hrefUrl = field.key === 'blog' ? makeAbsoluteUrl(rawValue) : rawValue;
+
+            const anchor = document.createElement('a');
+            anchor.href = hrefUrl; 
+            anchor.target = '_blank';
+            anchor.textContent = rawValue;
+            item.textContent = field.label + ': ';
+            item.appendChild(anchor);
+        } else {
+            item.textContent = field.label + ': ' + rawValue;
+        }
+      } else {
+        item.textContent = field.label + ': ' + rawValue;
+      }
+      
+      parent.appendChild(item);
+    });
 }
 
 // Build the content area using only selected fields from repos data
 function buildContent(parent, reposData) {
-  reposData.forEach(repo => {
-    const repoContainer = createElement('div', '', 'flex-item');
-    repoContainer.style.fontSize = applyGoldenRatio(20, 1) + 'px';
-    
-    // Repo Name (with link to html_url)
-    const nameEl = document.createElement('div');
-    nameEl.innerHTML = `<strong>Name:</strong> <a href="${repo.html_url}" target="_blank">${repo.name}</a>`;
-    repoContainer.appendChild(nameEl);
-    
-    // Homepage
-    const homepageEl = createElement('div', '', '');
-    homepageEl.innerHTML = `<strong>Homepage:</strong> <a href="${repo.homepage}" target="_blank">${repo.homepage}</a>`;
-    repoContainer.appendChild(homepageEl);
-    
-    // Description
-    const descEl = createElement('div', '', '');
-    descEl.innerHTML = `<strong>Description:</strong> ${repo.description || ''}`;
-    repoContainer.appendChild(descEl);
-    
-    // Language
-    const langEl = createElement('div', '', '');
-    langEl.innerHTML = `<strong>Language:</strong> ${repo.language || ''}`;
-    repoContainer.appendChild(langEl);
-    
-    parent.appendChild(repoContainer);
-  });
+    // Define the name of the repository that should be ignored
+    const ignoredRepoName = window.location.hostname;
+    
+    reposData.forEach(repo => {
+        if (repo.name === ignoredRepoName) {
+            console.log(`Skipping content display for repository: ${ignoredRepoName}`);
+            return; // Skip to the next iteration of the forEach loop
+        }
+        
+        const repoContainer = createElement('div', '', 'flex-item');
+        repoContainer.style.fontSize = applyGoldenRatio(20, 1) + 'px';
+        
+        // Define the root homepage URL
+        const rootHomepageUrl = (window.location.protocol + '//' + window.location.hostname + window.location.pathname);
+        
+        // 1. Repo Name (with link to html_url)
+        const nameEl = document.createElement('div');
+        nameEl.innerHTML = `<strong>Name:</strong> <a href="${repo.html_url}" target="_blank">${repo.name}</a>`;
+        repoContainer.appendChild(nameEl);
+        
+        // 2. Homepage (Skipped only if null/empty, as the main repo is already excluded)
+        const homepageEl = createElement('div', '', '');
+        homepageEl.innerHTML = `<strong>Homepage:</strong> <a href="${repo.homepage}" target="_blank">${repo.homepage}</a>`;
+        repoContainer.appendChild(homepageEl);
+        
+        // 3. Description
+        const descEl = createElement('div', '', '');
+        descEl.innerHTML = `<strong>Description:</strong> ${repo.description || 'No description provided.'}`;
+        repoContainer.appendChild(descEl);
+        
+        // 4. Language
+        const langEl = createElement('div', '', '');
+        langEl.innerHTML = `<strong>Language:</strong> ${repo.language || 'N/A'}`;
+        repoContainer.appendChild(langEl);
+        
+        parent.appendChild(repoContainer);
+    });
 }
 
 // Function to fetch JSON data from a URL
@@ -171,3 +204,4 @@ init();
 
 </body>
 </html>
+
